@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Solicitud de recursos MMPP-PUQ</title>
+  <link href="https://fonts.googleapis.com/css?family=Calibri" rel="stylesheet">
+  <style>
+    /* Estilos para el formulario */
+    body {
+      font-family: Calibri, sans-serif;
+    }
+
+    form {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    #resultado {
+      border: none;
+      background-color: #f9f9f9;
+      font-weight: bold;
+      font-size: 18px;
+      padding: 10px;
+      margin-top: 10px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <form>
+    <h2>Solicitud de recursos MMPP-PUQ</h2>
+
+    <label for="fecha">P1 - Fecha de posible pago:</label>
+    <input type="date" id="fecha" required>
+
+    <label for="producto">P2 - Producto:</label>
+    <select id="producto" required>
+      <option value="">Seleccionar</option>
+      <option value="Erizo">Erizo</option>
+      <option value="Centolla">Centolla</option>
+      <option value="Centollón">Centollón</option>
+      <option value="Jaiba">Jaiba</option>
+      <option value="Loco">Loco</option>
+    </select>
+
+    <label for="lote">P3 - Lote:</label>
+    <input type="text" id="lote" required>
+
+    <label for="proveedor">P4 - Proveedor:</label>
+    <input type="text" id="proveedor">
+
+    <label for="rut">P5 - Rut Proveedor:</label>
+    <input type="text" id="rut" required>
+    <small>Sin puntos ni guión pero con dígito verificador</small>
+
+    <label for="embarcacion">P6 - Nombre de la embarcación:</label>
+    <input type="text" id="embarcacion" required>
+
+    <label for="cantidad">P7 - Cantidad de docenas:</label>
+    <input type="number" id="cantidad" required>
+
+    <label for="precio">P8 - Precio por docena (peso chileno):</label>
+    <input type="number" id="precio" required>
+
+    <label>Q DZ * Precio por DZ:</label>
+    <input type="text" id="resultado1" readonly>
+
+    <label for="anticipoLote">P9 - ¿Tiene anticipo lote?</label>
+    <select id="anticipoLote" required>
+      <option value="">Seleccionar</option>
+      <option value="Si">Sí</option>
+      <option value="No">No</option>
+    </select>
+
+    <label for="montoLote">P10 - Monto anticipo Lote (peso chileno):</label>
+    <input type="number" id="montoLote" required disabled>
+
+    <label for="anticipoTemporada">P11 - ¿Tiene anticipo inicio temporada?</label>
+    <select id="anticipoTemporada" required>
+      <option value="">Seleccionar</option>
+      <option value="Si">Sí</option>
+      <option value="No">No</option>
+    </select>
+
+    <label for="montoTemporada">P12 - Monto anticipo Temporada (peso chileno):</label>
+    <input type="number" id="montoTemporada" required disabled>
+
+    <label>Monto final:</label>
+    <input type="text" id="resultado2" readonly>
+
+    <button type="submit">Enviar formulario</button>
+  </form>
+
+  <script>
+    // Función para calcular Q DZ * Precio por DZ
+    function calcularQxPrecio() {
+      const cantidad = parseInt(document.getElementById('cantidad').value);
+      const precio = parseFloat(document.getElementById('precio').value);
+      const resultado1 = cantidad * precio;
+      document.getElementById('resultado1').value = `$${resultado1.toFixed(2)}`;
+    }
+
+    // Función para calcular Monto final
+    function calcularMontoFinal() {
+      const resultado1 = parseFloat(document.getElementById('resultado1').value.replace('$', ''));
+      const montoLote = parseFloat(document.getElementById('montoLote').value || 0);
+      const montoTemporada = parseFloat(document.getElementById('montoTemporada').value || 0);
+      const resultado2 = resultado1 - montoLote - montoTemporada;
+      document.getElementById('resultado2').value = `$${resultado2.toFixed(2)}`;
+    }
+
+    // Asignar eventos a los campos que requieren cálculos
+    document.getElementById('cantidad').addEventListener('input', calcularQxPrecio);
+    document.getElementById('precio').addEventListener('input', calcularQxPrecio);
+    document.getElementById('montoLote').addEventListener('input', calcularMontoFinal);
+    document.getElementById('montoTemporada').addEventListener('input', calcularMontoFinal);
+
+    // Habilitar o deshabilitar P10 según P9
+    document.getElementById('anticipoLote').addEventListener('change', function() {
+      const montoLoteInput = document.getElementById('montoLote');
+      montoLoteInput.disabled = this.value !== 'Si';
+      montoLoteInput.value = '';
+      calcularQxPrecio();
+      calcularMontoFinal();
+    });
+
+    // Habilitar o deshabilitar P12 según P11
+    document.getElementById('anticipoTemporada').addEventListener('change', function() {
+      const montoTemporadaInput = document.getElementById('montoTemporada');
+      montoTemporadaInput.disabled = this.value !== 'Si';
+      montoTemporadaInput.value = '';
+      calcularQxPrecio();
+      calcularMontoFinal();
+    });
+
+    // Calcular Q DZ * Precio por DZ al cargar la página
+    calcularQxPrecio();
+    calcularMontoFinal();
+
+    // Validar que el Rut sea solo números
+    document.getElementById('rut').addEventListener('input', function() {
+      this.value = this.value.replace(/[^\d]/g, '');
+    });
+
+    // Validar que los campos numéricos solo permitan números
+    const inputsNumericos = document.querySelectorAll('input[type="number"]');
+    for (const input of inputsNumericos) {
+      input.addEventListener('input', function() {
+        this.value = this.value.replace(/[^\d.]/g, '');
+      });
+    }
+  </script>
+</body>
+</html>
